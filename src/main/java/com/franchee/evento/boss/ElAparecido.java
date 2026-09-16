@@ -66,13 +66,6 @@ public class ElAparecido {
     private long proximaRafagaPermitida = 0L;
     private BukkitRunnable tickTask;
 
-    // Con setAI(false) el jefe pierde el "step assist" vanilla (subir bloques
-    // solo al caminar), asi que lo detectamos y forzamos un salto a mano.
-    private Location ultimaPosicionMovimiento;
-    private int ticksSinAvanzar = 0;
-    private static final int TICKS_PARA_CONSIDERAR_ATASCADO = 3; // ~0.75s a 5L por tick
-    private static final double IMPULSO_SALTO = 0.42; // equivalente a un salto vanilla
-
     private static final Map<UUID, ElAparecido> ACTIVOS = new HashMap<>();
 
     public ElAparecido(EventoPlugin plugin, ItemFactory itemFactory, Location location) {
@@ -96,7 +89,14 @@ public class ElAparecido {
         entidad.setRemoveWhenFarAway(false);
         entidad.setPersistent(true);
         entidad.setShouldBurnInDay(false);
-        entidad.setAI(false); // manejamos todo el movimiento/combate a mano
+        // IMPORTANTE: con setAI(false) el mob nunca traduce velocidad en
+        // movimiento real (queda "congelado" a nivel vanilla, mas alla de
+        // cualquier setVelocity()). La forma correcta de tener control total
+        // pero que el jefe SI se mueva es dejar la IA prendida y sacarle los
+        // goals vanilla (ataque, mirar random, etc.) con la Mob Goal API de
+        // Paper. El movimiento real lo hacemos con getPathfinder().
+        entidad.setAI(true);
+        plugin.getServer().getMobGoals().removeAllGoals(entidad);
 
         AttributeInstance vida = entidad.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         if (vida != null) vida.setBaseValue(VIDA_MAXIMA);
@@ -216,51 +216,22 @@ public class ElAparecido {
         }
     }
 
-    /** Mueve al jefe hacia el jugador mas cercano. multiplicadorVelocidad ajusta que tan rapido persigue. */
+    /**
+     * Mueve al jefe hacia el jugador mas cercano usando el Pathfinder real de
+     * Paper (com.destroystokyo.paper.entity.Pathfinder). A diferencia de
+     * setVelocity(), esto SI mueve al mob (sube bloques, esquiva obstaculos,
+     * gira solo hacia donde va) porque usa el mismo sistema de navegacion
+     * que cualquier mob vanilla — simplemente le sacamos los goals de ATAQUE
+     * y de MIRAR ALEATORIO en configurarEntidad() para que no interfieran.
+     *
+     * multiplicadorVelocidad es un multiplicador sobre la velocidad base del
+     * mob (1.0 = velocidad normal, 0.7 = 30% mas lento, etc.).
+     */
     private void moverHaciaObjetivo(double multiplicadorVelocidad) {
         Player objetivo = jugadorMasCercano(RANGO_PERSECUCION);
         if (objetivo == null) return;
 
-        Vector direccion = objetivo.getLocation().toVector().subtract(entidad.getLocation().toVector());
-        double distancia = direccion.length();
-        if (distancia > 0.1) {
-            Vector direccionNormalizada = direccion.clone().normalize();
-            double velocidadDeseada =
-                    entidad.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * 2 * multiplicadorVelocidad;
-            Vector empuje = direccionNormalizada.clone().multiply(velocidadDeseada);
-            entidad.setVelocity(new Vector(empuje.getX(), entidad.getVelocity().getY(), empuje.getZ()));
-
-            // Con AI desactivada el mob no gira solo hacia donde se mueve, asi
-            // que lo encaramos a mano para que no se vea deslizando de costado.
-            float yaw = (float) Math.toDegrees(Math.atan2(-direccionNormalizada.getX(), direccionNormalizada.getZ()));
-            entidad.setRotation(yaw, entidad.getLocation().getPitch());
-
-            saltarSiEstaAtascado();
-        }
-    }
-
-    /**
-     * Sin AI vanilla, el jefe no sube bloques solo al toparse con ellos (eso
-     * lo hace el pathfinder, que esta apagado). Si detectamos que casi no se
-     * desplazo pese a estar empujandolo, le damos un impulso vertical para
-     * que salte el obstaculo, como si tuviera step-up automatico.
-     */
-    private void saltarSiEstaAtascado() {
-        Location posicionActual = entidad.getLocation();
-        if (ultimaPosicionMovimiento != null) {
-            double desplazamientoCuadrado = posicionActual.distanceSquared(ultimaPosicionMovimiento);
-            if (entidad.isOnGround() && desplazamientoCuadrado < 0.01) {
-                ticksSinAvanzar++;
-                if (ticksSinAvanzar >= TICKS_PARA_CONSIDERAR_ATASCADO) {
-                    Vector velocidad = entidad.getVelocity();
-                    entidad.setVelocity(new Vector(velocidad.getX(), IMPULSO_SALTO, velocidad.getZ()));
-                    ticksSinAvanzar = 0;
-                }
-            } else {
-                ticksSinAvanzar = 0;
-            }
-        }
-        ultimaPosicionMovimiento = posicionActual.clone();
+        entidad.getPathfinder().moveTo(objetivo, multiplicadorVelocidad);
     }
 
     private void comportamientoSombraOSuperior() {
