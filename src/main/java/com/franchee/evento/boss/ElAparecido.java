@@ -29,7 +29,7 @@ import java.util.UUID;
  * El Aparecido: jefe de evento grupal, pensado para 6-15 jugadores.
  *
  * Fases (por % de vida):
- *  100-75  NIEBLA:   invisible, solo ataca a distancia con bolas de fuego erraticas
+ *  100-75  NIEBLA:   visible pero envuelto en niebla, ataca a distancia con bolas de fuego erraticas, se mueve mas lento
  *  75-50   SOMBRA:   se vuelve visible y cuerpo a cuerpo, invoca Vex ("sombras menores")
  *  50-25   CARNE:    maximo poder, grito de area (Lentitud + Fatiga = "aturdimiento")
  *  25-0    COLAPSO:  menos dano propio, pero tira rafagas de dano al azar en la arena
@@ -158,12 +158,15 @@ public class ElAparecido {
     // ---------------- FASE 1: NIEBLA ----------------
     private void entrarFaseNiebla() {
         bossBar.name(Component.text("El Aparecido (niebla)", NamedTextColor.GRAY));
-        entidad.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 0, false, false));
         entidad.getWorld().playSound(entidad.getLocation(), Sound.AMBIENT_CAVE, 1.0f, 0.6f);
     }
 
     private void comportamientoNiebla() {
-        entidad.getWorld().spawnParticle(Particle.SOUL, entidad.getLocation().add(0, 1, 0), 2, 0.3, 0.3, 0.3, 0.01);
+        // Nube de niebla como identidad visual de la fase, sin ocultarlo (se puede golpear).
+        entidad.getWorld().spawnParticle(Particle.SOUL, entidad.getLocation().add(0, 1, 0), 3, 0.5, 0.5, 0.5, 0.01);
+        entidad.getWorld().spawnParticle(Particle.CLOUD, entidad.getLocation().add(0, 0.3, 0), 4, 0.6, 0.2, 0.6, 0.01);
+
+        moverHaciaObjetivo(0.7); // mas lento que las fases siguientes, mantiene distancia como tirador
 
         Player objetivo = jugadorMasCercano(RANGO_PERSECUCION);
         if (objetivo == null) return;
@@ -194,7 +197,6 @@ public class ElAparecido {
     // ---------------- FASE 2: SOMBRA ----------------
     private void entrarFaseSombra() {
         bossBar.name(Component.text("El Aparecido (sombra)", NamedTextColor.DARK_PURPLE));
-        entidad.removePotionEffect(PotionEffectType.INVISIBILITY);
         entidad.getWorld().playSound(entidad.getLocation(), Sound.ENTITY_VEX_AMBIENT, 1.5f, 0.7f);
 
         Location base = entidad.getLocation();
@@ -207,20 +209,28 @@ public class ElAparecido {
         }
     }
 
-    private void comportamientoSombraOSuperior() {
+    /** Mueve al jefe hacia el jugador mas cercano. multiplicadorVelocidad ajusta que tan rapido persigue. */
+    private void moverHaciaObjetivo(double multiplicadorVelocidad) {
         Player objetivo = jugadorMasCercano(RANGO_PERSECUCION);
         if (objetivo == null) return;
 
-        // Movimiento manual hacia el objetivo (AI apagada)
         Vector direccion = objetivo.getLocation().toVector().subtract(entidad.getLocation().toVector());
         double distancia = direccion.length();
         if (distancia > 0.1) {
-            direccion.normalize().multiply(entidad.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * 2);
+            direccion.normalize().multiply(
+                    entidad.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * 2 * multiplicadorVelocidad);
             entidad.setVelocity(new Vector(direccion.getX(), entidad.getVelocity().getY(), direccion.getZ()));
         }
+    }
+
+    private void comportamientoSombraOSuperior() {
+        moverHaciaObjetivo(1.0);
+
+        Player objetivo = jugadorMasCercano(RANGO_ATAQUE);
+        if (objetivo == null) return;
 
         long ahora = System.currentTimeMillis();
-        if (distancia <= RANGO_ATAQUE && ahora >= proximoAtaquePermitido) {
+        if (ahora >= proximoAtaquePermitido) {
             double valorDanio = entidad.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getValue();
             objetivo.damage(valorDanio, entidad);
             proximoAtaquePermitido = ahora + COOLDOWN_ATAQUE_MS;

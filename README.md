@@ -41,8 +41,8 @@ resetea el estado del manager).
 
 | Fase | Vida | Comportamiento |
 |---|---|---|
-| Niebla | 100-75% | Invisible, solo ataca a distancia con bolas de fuego con trayectoria errática |
-| Sombra | 75-50% | Se vuelve visible, pelea cuerpo a cuerpo, invoca 2-3 Vex ("Sombras Menores") |
+| Niebla | 100-75% | Visible, se mueve un 30% más lento, ataca a distancia con bolas de fuego con trayectoria errática |
+| Sombra | 75-50% | Velocidad normal, pelea cuerpo a cuerpo, invoca 2-3 Vex ("Sombras Menores") |
 | Carne | 50-25% | +40% velocidad y daño, grito de área cada 8s (Lentitud + Fatiga a quien esté cerca) |
 | Colapso | 25-0% | -50% daño propio, pero tira ráfagas de daño en puntos al azar de la arena cada 3s |
 
