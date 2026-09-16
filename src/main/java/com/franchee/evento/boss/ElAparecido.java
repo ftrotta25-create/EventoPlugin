@@ -279,7 +279,7 @@ public class ElAparecido {
         new BukkitRunnable() {
             @Override
             public void run() {
-                punto.getWorld().spawnParticle(Particle.EXPLOSION, punto, 1);
+                punto.getWorld().spawnParticle(Particle.EXPLOSION_NORMAL, punto, 1);
                 punto.getWorld().playSound(punto, Sound.ENTITY_GENERIC_EXPLODE, 0.7f, 1.2f);
                 for (Player jugador : punto.getWorld().getPlayers()) {
                     if (jugador.getLocation().distance(punto) <= 2.0) {
