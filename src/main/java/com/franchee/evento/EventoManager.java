@@ -110,9 +110,14 @@ public class EventoManager {
         yaTeletransportados.clear();
         Location punto = plugin.getPuntoEncuentro();
 
+        String coordenadas = String.format("X: %d, Y: %d, Z: %d (mundo: %s)",
+                punto.getBlockX(), punto.getBlockY(), punto.getBlockZ(), punto.getWorld().getName());
+
         plugin.getServer().broadcast(Component.text(
                 "¡El portal se abrió en el punto de encuentro! Entrá para ir a la arena.",
                 NamedTextColor.DARK_PURPLE));
+        plugin.getServer().broadcast(Component.text(
+                "Coordenadas del portal: " + coordenadas, NamedTextColor.LIGHT_PURPLE));
 
         final long[] ticksRestantes = {DURACION_PORTAL_TICKS};
         tareaActual = new BukkitRunnable() {
@@ -125,6 +130,15 @@ public class EventoManager {
                 }
 
                 dibujarAnilloDePortal(punto);
+
+                // Recordatorio de las coordenadas cada 10s para el que se
+                // engancho de algo y todavia no llego al punto de encuentro.
+                if (ticksRestantes[0] % 200 == 0) {
+                    for (Player jugador : plugin.getServer().getOnlinePlayers()) {
+                        jugador.sendActionBar(Component.text(
+                                "Portal abierto en " + coordenadas, NamedTextColor.LIGHT_PURPLE));
+                    }
+                }
 
                 for (Player jugador : punto.getWorld().getPlayers()) {
                     if (yaTeletransportados.contains(jugador.getUniqueId())) continue;
