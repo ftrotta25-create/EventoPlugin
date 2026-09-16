@@ -1,0 +1,12 @@
+name: EventoPlugin
+version: 1.0.0
+main: com.franchee.evento.EventoPlugin
+api-version: '1.20'
+author: Franchee
+description: Evento de jefe grupal - El Aparecido. Countdown, portal a arena (Multiverse) y jefe de 4 fases.
+
+commands:
+  evento:
+    description: Comandos del sistema de eventos
+    usage: /evento <setpuntoencuentro|setarena|iniciar|cancelar>
+    permission: evento.admin
