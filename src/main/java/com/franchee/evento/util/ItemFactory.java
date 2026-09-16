@@ -46,12 +46,22 @@ public class ItemFactory {
                         .decoration(TextDecoration.ITALIC, false)
         ));
 
+        // Un AttributeModifier solo se activa cuando el item esta en el slot
+        // que le indicamos, asi que para que funcione en cualquiera de las
+        // dos manos hace falta un modifier por cada slot (con UUID distinto).
         meta.addAttributeModifier(Attribute.GENERIC_MOVEMENT_SPEED, new AttributeModifier(
                 UUID.randomUUID(),
-                "sudario_velocidad",
+                "sudario_velocidad_mano_principal",
                 SUDARIO_BONUS_VELOCIDAD,
                 AttributeModifier.Operation.MULTIPLY_SCALAR_1,
                 EquipmentSlot.HAND
+        ));
+        meta.addAttributeModifier(Attribute.GENERIC_MOVEMENT_SPEED, new AttributeModifier(
+                UUID.randomUUID(),
+                "sudario_velocidad_segunda_mano",
+                SUDARIO_BONUS_VELOCIDAD,
+                AttributeModifier.Operation.MULTIPLY_SCALAR_1,
+                EquipmentSlot.OFF_HAND
         ));
         // Ocultamos la lista de atributos vanilla de Minecraft porque ya la
         // mostramos nosotros mismos en el lore de arriba, con mejor formato.
@@ -85,17 +95,31 @@ public class ItemFactory {
 
         meta.addAttributeModifier(Attribute.GENERIC_MAX_HEALTH, new AttributeModifier(
                 UUID.randomUUID(),
-                "corazon_vida",
+                "corazon_vida_mano_principal",
                 CORAZON_BONUS_VIDA,
+                AttributeModifier.Operation.ADD_NUMBER,
+                EquipmentSlot.HAND
+        ));
+        meta.addAttributeModifier(Attribute.GENERIC_MAX_HEALTH, new AttributeModifier(
+                UUID.randomUUID(),
+                "corazon_vida_segunda_mano",
+                CORAZON_BONUS_VIDA,
+                AttributeModifier.Operation.ADD_NUMBER,
+                EquipmentSlot.OFF_HAND
+        ));
+        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, new AttributeModifier(
+                UUID.randomUUID(),
+                "corazon_danio_mano_principal",
+                CORAZON_BONUS_DANIO,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlot.HAND
         ));
         meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, new AttributeModifier(
                 UUID.randomUUID(),
-                "corazon_danio",
+                "corazon_danio_segunda_mano",
                 CORAZON_BONUS_DANIO,
                 AttributeModifier.Operation.ADD_NUMBER,
-                EquipmentSlot.HAND
+                EquipmentSlot.OFF_HAND
         ));
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE);
         meta.setUnbreakable(true);
