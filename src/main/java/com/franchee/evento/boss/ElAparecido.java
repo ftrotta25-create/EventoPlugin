@@ -50,6 +50,10 @@ public class ElAparecido {
     private static final long COOLDOWN_GRITO_MS = 8000L;
     private static final long COOLDOWN_RAFAGA_MS = 3000L;
     private static final double RADIO_RAFAGA_ARENA = 10.0;
+    private static final double RANGO_EMBATE = 4.5;
+    private static final double DANIO_EMBATE = 9.0;
+    private static final double EMPUJE_EMBATE = 0.6;
+    private static final long COOLDOWN_EMBATE_MS = 6000L;
 
     private final EventoPlugin plugin;
     private final ItemFactory itemFactory;
@@ -64,6 +68,7 @@ public class ElAparecido {
     private long proximoDisparoPermitido = 0L;
     private long proximoGritoPermitido = 0L;
     private long proximaRafagaPermitida = 0L;
+    private long proximoEmbatePermitido = 0L;
     private BukkitRunnable tickTask;
 
     private static final Map<UUID, ElAparecido> ACTIVOS = new HashMap<>();
@@ -236,6 +241,7 @@ public class ElAparecido {
 
     private void comportamientoSombraOSuperior() {
         moverHaciaObjetivo(1.0);
+        comportamientoEmbate();
 
         Player objetivo = jugadorMasCercano(RANGO_ATAQUE);
         if (objetivo == null) return;
@@ -246,6 +252,59 @@ public class ElAparecido {
             objetivo.damage(valorDanio, entidad);
             proximoAtaquePermitido = ahora + COOLDOWN_ATAQUE_MS;
         }
+    }
+
+    /**
+     * Ataque nuevo, de area: el jefe se prepara (aviso de sonido + particulas
+     * durante 0.75s, tiempo suficiente para alejarse) y despues suelta una
+     * onda expansiva que dana y empuja a todos los jugadores dentro de
+     * RANGO_EMBATE, sin importar si estan pegados o un poco mas lejos que el
+     * golpe cuerpo a cuerpo normal. Disponible desde la fase Sombra en
+     * adelante (se llama junto con el ataque normal).
+     */
+    private void comportamientoEmbate() {
+        long ahora = System.currentTimeMillis();
+        if (ahora < proximoEmbatePermitido) return;
+
+        Player objetivoCercano = jugadorMasCercano(RANGO_EMBATE);
+        if (objetivoCercano == null) return;
+
+        proximoEmbatePermitido = ahora + COOLDOWN_EMBATE_MS;
+
+        // Aviso: se puede esquivar alejandose apenas se escucha/ve esto.
+        entidad.getWorld().playSound(entidad.getLocation(), Sound.ENTITY_RAVAGER_ROAR, 1.0f, 0.7f);
+        entidad.getWorld().spawnParticle(Particle.CRIT, entidad.getLocation().add(0, 0.2, 0),
+                30, 1.5, 0.2, 1.5, 0.15);
+
+        Location centro = entidad.getLocation();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                centro.getWorld().spawnParticle(Particle.EXPLOSION_NORMAL, centro.clone().add(0, 0.2, 0), 1);
+                centro.getWorld().playSound(centro, Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.1f);
+
+                // Anillo de particulas para marcar visualmente el radio afectado.
+                for (int i = 0; i < 24; i++) {
+                    double angulo = 2 * Math.PI * i / 24;
+                    double x = Math.cos(angulo) * RANGO_EMBATE;
+                    double z = Math.sin(angulo) * RANGO_EMBATE;
+                    centro.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME,
+                            centro.clone().add(x, 0.2, z), 1, 0, 0, 0, 0);
+                }
+
+                for (Player jugador : centro.getWorld().getPlayers()) {
+                    double distancia = jugador.getLocation().distance(centro);
+                    if (distancia > RANGO_EMBATE) continue;
+
+                    jugador.damage(DANIO_EMBATE, entidad);
+                    if (distancia > 0.1) {
+                        Vector empuje = jugador.getLocation().toVector().subtract(centro.toVector())
+                                .normalize().multiply(EMPUJE_EMBATE);
+                        jugador.setVelocity(jugador.getVelocity().add(new Vector(empuje.getX(), 0.35, empuje.getZ())));
+                    }
+                }
+            }
+        }.runTaskLater(plugin, 15L); // 0.75s de aviso antes de que explote de verdad
     }
 
     // ---------------- FASE 3: CARNE ----------------
