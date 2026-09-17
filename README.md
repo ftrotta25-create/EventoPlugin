@@ -58,16 +58,28 @@ se disfraza automáticamente de jugador con un skin custom al aparecer.
 
 1. Instalá LibsDisguises si no lo tenés (requiere también **PacketEvents**
    como dependencia — chequeá la página del plugin).
-2. Poné tu archivo de skin en `plugins/LibsDisguises/skins/aparecido.png`
-   (tiene que llamarse exactamente así).
-3. Listo — no hace falta ningún comando ni configuración extra, el
-   plugin lo aplica solo al spawnear el jefe.
+2. Andá a **https://mineskin.org**, subí tu archivo `.png` y generalo.
+3. Copiá los dos campos `value` y `signature` que te da (son strings
+   largos en base64) y pegalos en `plugins/EventoPlugin/config.yml`:
+   ```yaml
+   skinAparecido:
+     value: 'ACA_VA_EL_VALUE_LARGO'
+     signature: 'ACA_VA_LA_SIGNATURE_LARGA'
+   ```
+4. Reiniciá el server (o `/reload`, aunque no es lo ideal). Listo, no
+   hace falta ningún comando extra — se aplica solo al spawnear el jefe.
 
-Si LibsDisguises no está instalado o falla por algún motivo, el jefe
-sigue funcionando 100% igual (fases, daño, todo) — simplemente se ve
-como un Zombie vanilla en vez de tu skin custom. El nombre del archivo
-está en la constante `ARCHIVO_SKIN` en `ElAparecido.java` si querés
-cambiarlo.
+**Por qué no usamos directamente un archivo .png:** `PlayerDisguise`
+no carga imágenes locales por código — ese truco de "`setSkin
+archivo.png`" solo funciona escribiéndolo a mano en el comando
+`/disguise` in-game, no llamando al método de Java desde un plugin.
+La forma soportada oficialmente para plugins es este gameprofile
+firmado por Mojang (`value`+`signature`), que armamos a partir de lo
+que generás en mineskin.org.
+
+Si LibsDisguises no está instalado, o dejaste `value`/`signature`
+vacíos, el jefe sigue funcionando 100% igual (fases, daño, todo) —
+simplemente se ve como un Zombie vanilla.
 
 ## Ajustar a gusto
 

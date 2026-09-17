@@ -2,3 +2,13 @@
 #   /evento setpuntoencuentro
 #   /evento setarena
 # No hace falta editar este archivo a mano.
+
+# Skin de El Aparecido (opcional, requiere LibsDisguises instalado).
+# Generalo gratis en https://mineskin.org subiendo tu archivo .png,
+# y pegá acá los dos campos "value" y "signature" que te da (son
+# strings largos en base64, va uno por linea entre comillas).
+# Si dejas esto vacio, el jefe funciona igual pero se ve como
+# Zombie vanilla.
+skinAparecido:
+  value: ''
+  signature: ''

@@ -33,6 +33,16 @@ public class EventoPlugin extends JavaPlugin {
         return eventoManager;
     }
 
+    // ---------------- Skin de El Aparecido ----------------
+
+    public String getSkinValue() {
+        return getConfig().getString("skinAparecido.value");
+    }
+
+    public String getSkinSignature() {
+        return getConfig().getString("skinAparecido.signature");
+    }
+
     // ---------------- Persistencia de ubicaciones ----------------
 
     public Location getPuntoEncuentro() {

@@ -56,7 +56,6 @@ public class ElAparecido {
     private static final double DANIO_EMBATE = 9.0;
     private static final double EMPUJE_EMBATE = 0.6;
     private static final long COOLDOWN_EMBATE_MS = 6000L;
-    private static final String ARCHIVO_SKIN = "aparecido.png";
 
     private final EventoPlugin plugin;
     private final ItemFactory itemFactory;
@@ -122,19 +121,41 @@ public class ElAparecido {
 
     /**
      * Disfraza al Zombie de jugador con el skin custom, usando LibsDisguises
-     * si esta instalado. El .png tiene que estar en
-     * plugins/LibsDisguises/skins/aparecido.png
-     * Si LibsDisguises no esta instalado, el jefe sigue funcionando
-     * normal, solo se ve como Zombie vanilla.
+     * si esta instalado. El skin se define en config.yml (skinAparecido.value
+     * y skinAparecido.signature), generados en https://mineskin.org a partir
+     * de tu .png.
+     *
+     * IMPORTANTE: PlayerDisguise#setSkin(String) NO carga archivos .png
+     * directamente por Java (ese truco solo existe en el parser de
+     * comandos in-game). Lo que SI soporta oficialmente es un gameprofile
+     * serializado como JSON cuando el string supera los 50 caracteres
+     * (ver disguises.yml de LibsDisguises) - por eso lo armamos a mano acá.
+     *
+     * Si LibsDisguises no esta instalado, o el value/signature no estan
+     * configurados, el jefe sigue funcionando normal, solo se ve como
+     * Zombie vanilla.
      */
     private void aplicarDisfraz() {
         if (!plugin.getServer().getPluginManager().isPluginEnabled("LibsDisguises")) {
             plugin.getLogger().warning("LibsDisguises no esta instalado - El Aparecido se ve como Zombie vanilla.");
             return;
         }
+
+        String value = plugin.getSkinValue();
+        String signature = plugin.getSkinSignature();
+        if (value == null || value.isBlank() || signature == null || signature.isBlank()) {
+            plugin.getLogger().warning("No hay skin configurado (skinAparecido.value/signature en config.yml) - "
+                    + "El Aparecido se ve como Zombie vanilla.");
+            return;
+        }
+
         try {
+            String perfilJson = "{\"id\":\"" + UUID.randomUUID().toString().replace("-", "")
+                    + "\",\"name\":\"ElAparecido\",\"properties\":[{\"name\":\"textures\",\"value\":\""
+                    + value + "\",\"signature\":\"" + signature + "\"}]}";
+
             PlayerDisguise disfraz = new PlayerDisguise("ElAparecido");
-            disfraz.setSkin(ARCHIVO_SKIN);
+            disfraz.setSkin(perfilJson);
             disfraz.setHearSelfDisguise(false);
             DisguiseAPI.disguiseToAll(entidad, disfraz);
         } catch (Exception ex) {
