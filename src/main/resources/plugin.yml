@@ -4,6 +4,7 @@ main: com.franchee.evento.EventoPlugin
 api-version: '1.20'
 author: Franchee
 description: Evento de jefe grupal - El Aparecido. Countdown, portal a arena (Multiverse) y jefe de 4 fases.
+softdepend: [LibsDisguises]
 
 commands:
   evento:

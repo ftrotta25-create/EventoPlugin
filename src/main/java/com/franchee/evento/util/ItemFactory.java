@@ -18,7 +18,7 @@ import java.util.UUID;
  * Recompensas de El Aparecido:
  * - Sudario del Aparecido: para todos los que hicieron dano. Da un pequeno
  *   bonus de velocidad mientras se tiene en la mano.
- * - Corazon de Matias: extra, solo para quien hizo mas dano (MVP). Da vida
+ * - Vestigio del Aparecido: extra, solo para quien hizo mas dano (MVP). Da vida
  *   maxima y dano de ataque extra mientras se tiene en la mano.
  */
 public class ItemFactory {
@@ -71,14 +71,14 @@ public class ItemFactory {
         return item;
     }
 
-    public ItemStack crearCorazonDeMatias() {
+    public ItemStack crearVestigioDelAparecido() {
         ItemStack item = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = item.getItemMeta();
 
-        meta.displayName(Component.text("Corazón de Matías, el Insaciable", NamedTextColor.GOLD)
+        meta.displayName(Component.text("Vestigio del Aparecido", NamedTextColor.GOLD)
                 .decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
-                Component.text("Lo que quedaba de el, todavia late.", NamedTextColor.DARK_GRAY)
+                Component.text("Lo que quedó, todavía late.", NamedTextColor.DARK_GRAY)
                         .decoration(TextDecoration.ITALIC, false),
                 Component.text("Cada latido es una promesa que no piensa cumplir.", NamedTextColor.DARK_GRAY)
                         .decoration(TextDecoration.ITALIC, false),

@@ -2,6 +2,8 @@ package com.franchee.evento.boss;
 
 import com.franchee.evento.EventoPlugin;
 import com.franchee.evento.util.ItemFactory;
+import me.libraryaddict.disguise.DisguiseAPI;
+import me.libraryaddict.disguise.disguisetypes.PlayerDisguise;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -54,6 +56,7 @@ public class ElAparecido {
     private static final double DANIO_EMBATE = 9.0;
     private static final double EMPUJE_EMBATE = 0.6;
     private static final long COOLDOWN_EMBATE_MS = 6000L;
+    private static final String ARCHIVO_SKIN = "aparecido.png";
 
     private final EventoPlugin plugin;
     private final ItemFactory itemFactory;
@@ -114,6 +117,29 @@ public class ElAparecido {
         if (velocidad != null) velocidad.setBaseValue(VELOCIDAD_BASE);
 
         entrarFaseNiebla();
+        aplicarDisfraz();
+    }
+
+    /**
+     * Disfraza al Zombie de jugador con el skin custom, usando LibsDisguises
+     * si esta instalado. El .png tiene que estar en
+     * plugins/LibsDisguises/skins/aparecido.png
+     * Si LibsDisguises no esta instalado, el jefe sigue funcionando
+     * normal, solo se ve como Zombie vanilla.
+     */
+    private void aplicarDisfraz() {
+        if (!plugin.getServer().getPluginManager().isPluginEnabled("LibsDisguises")) {
+            plugin.getLogger().warning("LibsDisguises no esta instalado - El Aparecido se ve como Zombie vanilla.");
+            return;
+        }
+        try {
+            PlayerDisguise disfraz = new PlayerDisguise("ElAparecido");
+            disfraz.setSkin(ARCHIVO_SKIN);
+            disfraz.setHearSelfDisguise(false);
+            DisguiseAPI.disguiseToAll(entidad, disfraz);
+        } catch (Exception ex) {
+            plugin.getLogger().warning("No se pudo aplicar el disfraz de El Aparecido: " + ex.getMessage());
+        }
     }
 
     private void iniciarTick() {
@@ -419,7 +445,7 @@ public class ElAparecido {
             if (jugador == null) continue;
             jugador.getInventory().addItem(itemFactory.crearSudario());
             if (uuid.equals(mvpId)) {
-                jugador.getInventory().addItem(itemFactory.crearCorazonDeMatias());
+                jugador.getInventory().addItem(itemFactory.crearVestigioDelAparecido());
             }
         }
 

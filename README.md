@@ -48,9 +48,26 @@ resetea el estado del manager).
 
 ## Recompensas
 
-- **Sudario del Aparecido**: para todos los que le hicieron daño al jefe.
-- **Corazón de Matías**: extra, solo para quien más daño acumuló (MVP,
-  anunciado por server al morir el jefe).
+- **Sudario del Aparecido**: para todos los que le hicieron daño al jefe. +15% de velocidad de movimiento mientras lo tengas en cualquiera de las dos manos.
+- **Vestigio del Aparecido**: extra, solo para quien más daño acumuló (MVP, anunciado por server al morir el jefe). +4 corazones de vida máxima y +2 de daño de ataque mientras lo tengas en cualquiera de las dos manos.
+
+## Skin de El Aparecido (LibsDisguises)
+
+El jefe es un Zombie por dentro, pero si tenés **LibsDisguises** instalado
+se disfraza automáticamente de jugador con un skin custom al aparecer.
+
+1. Instalá LibsDisguises si no lo tenés (requiere también **PacketEvents**
+   como dependencia — chequeá la página del plugin).
+2. Poné tu archivo de skin en `plugins/LibsDisguises/skins/aparecido.png`
+   (tiene que llamarse exactamente así).
+3. Listo — no hace falta ningún comando ni configuración extra, el
+   plugin lo aplica solo al spawnear el jefe.
+
+Si LibsDisguises no está instalado o falla por algún motivo, el jefe
+sigue funcionando 100% igual (fases, daño, todo) — simplemente se ve
+como un Zombie vanilla en vez de tu skin custom. El nombre del archivo
+está en la constante `ARCHIVO_SKIN` en `ElAparecido.java` si querés
+cambiarlo.
 
 ## Ajustar a gusto
 
@@ -60,14 +77,18 @@ fácil de tunear sin tocar la lógica.
 
 ## Cosas para tener en cuenta
 
-- El jefe usa `setAI(false)` y todo el movimiento/combate lo maneja el
-  plugin a mano (igual que el Jefe Cabra) — así el comportamiento es
-  100% predecible y no pelea contra la IA vanilla del Zombie.
+- El jefe mantiene la IA prendida pero le sacamos todos los goals
+  vanilla (`getMobGoals().removeAllGoals()`) y movemos con el
+  Pathfinder real de Paper (`entidad.getPathfinder().moveTo(...)`) —
+  esto SÍ traduce en movimiento real (sube bloques, esquiva
+  obstáculos), a diferencia de `setVelocity()` con `setAI(false)` que
+  deja al mob congelado.
+- Desde la fase Sombra en adelante, además del golpe cuerpo a cuerpo
+  normal, el jefe tiene un ataque de área nuevo ("Embate"): se prepara
+  con sonido + partículas por 0.75s (tiempo para esquivar alejándose)
+  y después suelta una onda que daña y empuja a todos los jugadores
+  dentro de su radio. Cooldown de 6s.
 - No hay recetas de crafteo ni altar de invocación acá — el jefe se
   invoca solo automáticamente al cerrarse el portal. Si más adelante
   querés que la gente lo invoque con un ítem en vez de por countdown,
   avisame y lo adaptamos.
-- La textura del jefe (para que no sea un Zombie vanilla) queda
-  pendiente de un `CustomModelData` — decime si querés que se lo
-  agregue ya mismo con un placeholder, como hicimos con la Pava y el
-  Mate.
