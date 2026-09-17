@@ -21,8 +21,8 @@
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
+            <id>libsdisguises-public</id>
+            <url>https://mvn.lib.co.nz/public/</url>
         </repository>
     </repositories>
 
@@ -34,8 +34,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.libraryaddict</groupId>
-            <artifactId>LibsDisguises</artifactId>
+            <groupId>me.libraryaddict.disguises</groupId>
+            <artifactId>libsdisguises</artifactId>
             <version>11.0.13</version>
             <scope>provided</scope>
         </dependency>
